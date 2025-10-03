@@ -1,4 +1,4 @@
-import { useShow } from "@refinedev/core";
+import { useShow, useList } from "@refinedev/core";
 import {
   TextField,
   NumberField,
@@ -8,12 +8,40 @@ import {
 } from "@refinedev/antd";
 
 import { Typography, Button } from "antd";
+import { useNavigate } from "react-router";
 
 export const ShowProject = () => {
   const {
     result: project,
     query: { isLoading },
   } = useShow();
+
+  const navigate = useNavigate();
+
+  const {
+    result: feedbackData,
+    query: { isLoading: feedbackLoading },
+  } = useList({
+    resource: "feedback",
+    filters: project?.id
+      ? [
+          {
+            field: "project_id",
+            operator: "eq",
+            value: project.id,
+          },
+        ]
+      : [],
+    pagination: {
+      current: 1,
+      pageSize: 12,
+    },
+    queryOptions: {
+      enabled: !!project?.id,
+    },
+  });
+
+  const feedbackCount = feedbackData?.data?.length || 0;
 
   return (
     <Show
@@ -24,11 +52,12 @@ export const ShowProject = () => {
           <EditButton />
           <Button
             onClick={() => {
-              console.log("Переход к обращениям");
+              navigate(`/feedback?project_id=${project?.id}`);
             }}
             type="default"
+            loading={feedbackLoading}
           >
-            К обращениям
+            К обращениям ({feedbackLoading ? "..." : feedbackCount})
           </Button>
         </>
       )}

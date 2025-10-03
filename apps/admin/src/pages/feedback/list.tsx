@@ -9,16 +9,44 @@ import {
   List,
 } from "@refinedev/antd";
 
-import { Table, Space, Select, Tag } from "antd";
+import { Table, Space, Select, Tag, Button } from "antd";
+import { useEffect } from "react";
+import { useSearchParams } from "react-router";
 
 export const ListFeedback = () => {
-  const { tableProps, sorters, filters } = useTable({
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("project_id");
+
+  const { tableProps, sorters, filters, setFilters } = useTable({
     resource: "feedback",
     pagination: { currentPage: 1, pageSize: 12 },
     sorters: {
       initial: [{ field: "created_at", order: "asc" }],
     },
+    filters: {
+      initial: projectId
+        ? [
+            {
+              field: "project_id",
+              operator: "eq",
+              value: projectId,
+            },
+          ]
+        : [],
+    },
   });
+
+  useEffect(() => {
+    if (projectId) {
+      setFilters([
+        {
+          field: "project_id",
+          operator: "eq",
+          value: projectId,
+        },
+      ]);
+    }
+  }, [projectId, setFilters]);
 
   const { result: projects, query: projectsQuery } = useMany({
     resource: "projects",
@@ -62,8 +90,37 @@ export const ListFeedback = () => {
     }[status];
   };
 
+  const { result: projectData } = useMany({
+    resource: "projects",
+    ids: projectId ? [projectId] : [],
+  });
+
+  const currentProject = projectData?.data?.[0];
+
   return (
-    <List title="Обращения граждан">
+    <List
+      title={
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <span>
+            {projectId && currentProject
+              ? `Обращения по проекту: ${currentProject.title}`
+              : "Обращения граждан"}
+          </span>
+          {projectId && (
+            <Button
+              size="small"
+              onClick={() => {
+                const newSearchParams = new URLSearchParams(searchParams);
+                newSearchParams.delete("project_id");
+                window.location.href = `/feedback?${newSearchParams.toString()}`;
+              }}
+            >
+              Показать все обращения
+            </Button>
+          )}
+        </div>
+      }
+    >
       <Table
         {...tableProps}
         rowKey="id"
