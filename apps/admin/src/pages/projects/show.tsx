@@ -1,7 +1,13 @@
 import { useShow } from "@refinedev/core";
-import { TextField, NumberField, Show } from "@refinedev/antd";
+import {
+  TextField,
+  NumberField,
+  Show,
+  ListButton,
+  EditButton,
+} from "@refinedev/antd";
 
-import { Typography } from "antd";
+import { Typography, Button } from "antd";
 
 export const ShowProject = () => {
   const {
@@ -10,7 +16,23 @@ export const ShowProject = () => {
   } = useShow();
 
   return (
-    <Show isLoading={isLoading}>
+    <Show
+      isLoading={isLoading}
+      headerButtons={() => (
+        <>
+          <ListButton />
+          <EditButton />
+          <Button
+            onClick={() => {
+              console.log("Переход к обращениям");
+            }}
+            type="default"
+          >
+            К обращениям
+          </Button>
+        </>
+      )}
+    >
       <Typography.Title level={5}>Название</Typography.Title>
       <TextField value={project?.title} />
 
